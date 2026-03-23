@@ -1,0 +1,174 @@
+.features-section {
+  padding: 120px 24px;
+  background: #ffffff;
+}
+
+.features-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.features-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.features-header h2 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 16px;
+  color: var(--text-color);
+}
+
+.features-header p {
+  font-size: 1.15rem;
+  color: var(--secondary-color);
+}
+
+/* Comparison Table */
+.comparison-table-wrapper {
+  background: #f8fafc;
+  border-radius: 20px;
+  padding: 16px;
+  overflow-x: auto;
+  margin-bottom: 120px;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.comparison-table th, 
+.comparison-table td {
+  padding: 24px;
+  text-align: center;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.comparison-table th:first-child,
+.comparison-table td:first-child {
+  text-align: left;
+  font-weight: 700;
+  color: var(--text-color);
+  width: 32%;
+  padding-left: 24px;
+}
+
+.comparison-table th {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-color);
+  padding-bottom: 24px;
+}
+
+.check-badge {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 26px;
+  height: 26px;
+  background: #dcfce7;
+  color: #16a34a;
+  border-radius: 8px;
+}
+
+.cross-badge {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 26px;
+  height: 26px;
+  background: #fee2e2;
+  color: #ef4444;
+  border-radius: 8px;
+}
+
+.warn-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #fef3c7;
+  color: #d97706;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.price-badge {
+  display: inline-flex;
+  padding: 8px 16px;
+  border-radius: 100px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.formflow-price {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.pricing-row td {
+  border-bottom: none;
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+/* 3x3 Icon Grid */
+.features-grid-simple {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 80px 32px;
+}
+
+@media (min-width: 768px) {
+  .features-grid-simple {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.fs-card {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.fs-icon {
+  background: #0f172a;
+  color: #ffffff;
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.fs-card:hover .fs-icon {
+  transform: translateY(-4px);
+}
+
+.fs-card h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-color);
+  margin: 0 0 12px;
+  letter-spacing: -0.02em;
+}
+
+.fs-card p {
+  font-size: 1.05rem;
+  color: var(--secondary-color);
+  margin: 0;
+  line-height: 1.6;
+}
