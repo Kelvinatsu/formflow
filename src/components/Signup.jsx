@@ -24,20 +24,40 @@ const Signup = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { signup } = useAuth();
+  const [errorMsg, setErrorMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  
+  const { signup, loginWithOAuth } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (name && email && password) {
-      signup(name, email, password);
-      navigate('/builder');
+      try {
+        setErrorMsg('');
+        setSuccessMsg('');
+        setIsLoading(true);
+        await signup(name, email, password);
+        setSuccessMsg('Account created successfully! Please check your email to verify (if enabled) or sign in.');
+        setTimeout(() => {
+          navigate('/builder');
+        }, 2000);
+      } catch (error) {
+        setErrorMsg(error.message || 'Failed to sign up');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  const handleMockSocialAuth = () => {
-    signup('OAuth User', 'social@formflow.dev', 'mockpass123');
-    navigate('/dashboard');
+  const handleOAuth = async (provider) => {
+    try {
+      setErrorMsg('');
+      await loginWithOAuth(provider);
+    } catch (error) {
+      setErrorMsg(error.message || `Failed to sign up with ${provider}`);
+    }
   };
 
   return (
@@ -51,14 +71,26 @@ const Signup = () => {
           <p>Get started with FormFlow for free</p>
         </div>
 
+        {errorMsg && (
+          <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '12px', borderRadius: '6px', marginBottom: '20px', fontSize: '14px', textAlign: 'center' }}>
+            {errorMsg}
+          </div>
+        )}
+
+        {successMsg && (
+          <div style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '12px', borderRadius: '6px', marginBottom: '20px', fontSize: '14px', textAlign: 'center' }}>
+            {successMsg}
+          </div>
+        )}
+
         <div className="social-auth">
-          <button type="button" className="btn-social" onClick={handleMockSocialAuth}>
+          <button type="button" className="btn-social" onClick={() => handleOAuth('google')}>
              <GoogleIcon /> Continue with Google
           </button>
-          <button type="button" className="btn-social" onClick={handleMockSocialAuth}>
+          <button type="button" className="btn-social" onClick={() => handleOAuth('apple')}>
              <AppleIcon /> Continue with Apple
           </button>
-          <button type="button" className="btn-social" onClick={handleMockSocialAuth}>
+          <button type="button" className="btn-social" onClick={() => handleOAuth('github')}>
              <Github size={20} /> Continue with GitHub
           </button>
         </div>
@@ -76,6 +108,7 @@ const Signup = () => {
               placeholder="John Doe"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              disabled={isLoading}
             />
           </div>
           <div className="form-group">
@@ -86,6 +119,7 @@ const Signup = () => {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
             />
           </div>
           <div className="form-group">
@@ -97,9 +131,12 @@ const Signup = () => {
               minLength="8"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
             />
           </div>
-          <button type="submit" className="auth-submit">Create Account</button>
+          <button type="submit" className="auth-submit" disabled={isLoading}>
+            {isLoading ? 'Creating Account...' : 'Create Account'}
+          </button>
         </form>
         <div className="auth-footer">
           Already have an account? <Link to="/login" className="auth-link">Sign in</Link>

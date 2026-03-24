@@ -23,20 +23,34 @@ const AppleIcon = () => (
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const [errorMsg, setErrorMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { login, loginWithOAuth } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (email && password) {
-      login(email, password);
-      navigate('/builder');
+      try {
+        setErrorMsg('');
+        setIsLoading(true);
+        await login(email, password);
+        navigate('/builder');
+      } catch (error) {
+        setErrorMsg(error.message || 'Failed to login');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  const handleMockSocialAuth = () => {
-    login('social@formflow.dev', 'mockpass123');
-    navigate('/dashboard');
+  const handleOAuth = async (provider) => {
+    try {
+      setErrorMsg('');
+      await loginWithOAuth(provider);
+    } catch (error) {
+      setErrorMsg(error.message || `Failed to login with ${provider}`);
+    }
   };
 
   return (
@@ -50,14 +64,20 @@ const Login = () => {
           <p>Welcome back! Please enter your details.</p>
         </div>
 
+        {errorMsg && (
+          <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '12px', borderRadius: '6px', marginBottom: '20px', fontSize: '14px', textAlign: 'center' }}>
+            {errorMsg}
+          </div>
+        )}
+
         <div className="social-auth">
-          <button type="button" className="btn-social" onClick={handleMockSocialAuth}>
+          <button type="button" className="btn-social" onClick={() => handleOAuth('google')}>
              <GoogleIcon /> Continue with Google
           </button>
-          <button type="button" className="btn-social" onClick={handleMockSocialAuth}>
+          <button type="button" className="btn-social" onClick={() => handleOAuth('apple')}>
              <AppleIcon /> Continue with Apple
           </button>
-          <button type="button" className="btn-social" onClick={handleMockSocialAuth}>
+          <button type="button" className="btn-social" onClick={() => handleOAuth('github')}>
              <Github size={20} /> Continue with GitHub
           </button>
         </div>
@@ -75,6 +95,7 @@ const Login = () => {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
             />
           </div>
           <div className="form-group">
@@ -85,9 +106,12 @@ const Login = () => {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
             />
           </div>
-          <button type="submit" className="auth-submit">Sign In</button>
+          <button type="submit" className="auth-submit" disabled={isLoading}>
+            {isLoading ? 'Signing In...' : 'Sign In'}
+          </button>
         </form>
         <div className="auth-footer">
           Don't have an account? <Link to="/signup" className="auth-link">Sign up</Link>

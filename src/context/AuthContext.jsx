@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
 const AuthContext = createContext();
 
@@ -10,36 +11,57 @@ export const AuthProvider = ({ children }) => {
   const [userForms, setUserForms] = useState([]);
 
   useEffect(() => {
-    // Check local storage for an existing session mock
-    const storedUser = localStorage.getItem('formflowSession');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    const storedForms = localStorage.getItem('formflowForms');
-    if (storedForms) {
-      setUserForms(JSON.parse(storedForms));
-    }
-    setLoading(false);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      const storedForms = localStorage.getItem('formflowForms');
+      if (storedForms) {
+        setUserForms(JSON.parse(storedForms));
+      }
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = (email, password) => {
-    const mockUser = { email, name: email.split('@')[0], id: 'user_' + Date.now() };
-    setUser(mockUser);
-    localStorage.setItem('formflowSession', JSON.stringify(mockUser));
-    return true;
+  const login = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
+    return data;
   };
 
-  const signup = (name, email, password) => {
-    const mockUser = { email, name, id: 'user_' + Date.now() };
-    setUser(mockUser);
-    localStorage.setItem('formflowSession', JSON.stringify(mockUser));
-    return true;
+  const signup = async (name, email, password) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+        }
+      }
+    });
+    if (error) throw error;
+    return data;
   };
 
-  const logout = () => {
+  const loginWithOAuth = async (provider) => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setUserForms([]);
-    localStorage.removeItem('formflowSession');
     localStorage.removeItem('formflowForms');
   };
 
@@ -51,7 +73,7 @@ export const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ user, userForms, login, signup, logout, addForm, loading }}>
+    <AuthContext.Provider value={{ user, userForms, login, signup, loginWithOAuth, logout, addForm, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );
