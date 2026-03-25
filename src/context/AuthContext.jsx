@@ -11,17 +11,32 @@ export const AuthProvider = ({ children }) => {
   const [userForms, setUserForms] = useState([]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user && session.user.app_metadata?.provider === 'email' && !session.user.email_confirmed_at) {
+        await supabase.auth.signOut();
+        setUser(null);
+      } else {
+        setUser(session?.user ?? null);
+      }
+
       const storedForms = localStorage.getItem('formflowForms');
       if (storedForms) {
         setUserForms(JSON.parse(storedForms));
       }
       setLoading(false);
-    });
+    };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user && session.user.app_metadata?.provider === 'email' && !session.user.email_confirmed_at) {
+        await supabase.auth.signOut();
+        setUser(null);
+      } else {
+        setUser(session?.user ?? null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -32,7 +47,21 @@ export const AuthProvider = ({ children }) => {
       email,
       password,
     });
-    if (error) throw error;
+    
+    // Handle Supabase's native email confirmation error
+    if (error) {
+      if (error.message === 'Email not confirmed') {
+        throw new Error('Please confirm your email address before logging in.');
+      }
+      throw error;
+    }
+
+    // Explicitly enforce email confirmation on the frontend for email providers
+    if (data?.user && data.user.app_metadata?.provider === 'email' && !data.user.email_confirmed_at) {
+      await supabase.auth.signOut();
+      throw new Error('Please confirm your email address before logging in.');
+    }
+
     return data;
   };
 
